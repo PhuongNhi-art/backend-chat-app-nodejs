@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 
 const UserController = require('./controllers/UserController');
-// const MessageController = require('./controllers/MessageController');
+const MessageController = require('./controllers/MessageController');
 
 // const userMiddleware = require('./middlewares/auths/user');
 
@@ -21,6 +21,8 @@ router.post('/auth', UserController.login);
 router.post('/user', UserController.create);
 router.post('/forgotpassword', UserController.forgotPassword);
 router.post('/changepassword', UserController.changePassword);
+router.post('/sendmessage', MessageController.create);
+router.post('/allusers', UserController.getUsers);
 // router.get('/users', [middlewares.user], UserController.getUsers);
 
 // router.post('/message', [middlewares.user], MessageController.send);

@@ -20,22 +20,36 @@ class UserRepository {
     async getUsersWhereNot(userId) {
         return await User.find({ _id: { $ne: ObjectId(userId) } });
     }
-
+    
     async getUserByName(myId, username) {
         return await User.find({
             _id: { $ne: ObjectId(myId), username }
         });
     }
-
+    async getAllUsers(){
+        console.log("get user");
+        await User.find()
+        .then(data => {
+            console.log(data);
+          return data
+        })
+        // .catch(err => {
+        //   res.status(500).send({
+        //     message:
+        //       err.message || "Some error occurred while retrieving tutorials."
+        //   });
+        // }
+        // );
+    }
     async saveUserFcmToken(userId, fcmToken) {
         return await User.updateOne({ _id: ObjectId(userId) }, {
             fcmToken
         });
     }
-    async saveNewpassword(email, password) {
+    async saveNewpassword(id, password) {
         const hash = await bcrypt.hash(password, 10);
         password = hash;
-        return await User.updateOne({email: String(email) }, {
+        return await User.updateOne({_id: ObjectId(id) }, {
             password
         });
     }

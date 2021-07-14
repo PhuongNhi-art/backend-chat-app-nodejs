@@ -7,6 +7,7 @@ require('dotenv').config();
 const mailgun = require("mailgun-js");
 const DOMAIN = process.env.DOMAIN_MAILGUN;
 const mg = mailgun({apiKey:process.env.API_KEY, domain: DOMAIN});
+const User = require('../models/UserModel');
 function generateJwtToken(user){
     const { _id } = user;
     return jwt.sign({
@@ -90,37 +91,73 @@ class UserController {
             })
         }
     }
-    async getUsers(req, res) {
-        try {
-            const myId = req._id;
-            const username = req.query.username;
-            if (username) {
-                let user = await UserRepository.getUserByName(myId, username);
-                const lowerUserId = myId < user._id ? myId : user._id;
-                const higherUserId = myId > user._id ? myId : user._id;
-                user.chatId = hash(lowerUserId, higherUserId);
-                return res.json({
-                    success: true, message: user
-                })
-            }
-            let users = await UserRepository.getUsersWhereNot(myId);
-            users = users.map((user) => {
-                const lowerUserId = myId < user._id ? myId : user._id;
-                const higherUserId = myId > user._id ? myId : user._id;
-                user.chatId = hash(lowerUserId, higherUserId);
-                return user;
-            });
-            return res.json({
-                success: success, message:  users,
-            });
-        } catch (err) {
-            return res.json({
-                success: false,
-                message: err
-            })
-        }
+    // async getUsers(req, res) {
+    //     try {
+    //         const myId = req._id;
+    //         // const { myId} = req.body;
+    //         // console.log("myId"+myId);
+    //         const username = req.query.username;
+    //         if (username) {
+    //             let user = await UserRepository.getUserByName(myId, username);
+    //             const lowerUserId = myId < user._id ? myId : user._id;
+    //             const higherUserId = myId > user._id ? myId : user._id;
+    //             user.chatId = hash(lowerUserId, higherUserId);
+    //             return res.json({
+    //                 success: true, message: user
+    //             })
+    //         }
+    //         let users = await UserRepository.getUsersWhereNot(myId);
+    //         users = users.map((user) => {
+    //             const lowerUserId = myId < user._id ? myId : user._id;
+    //             const higherUserId = myId > user._id ? myId : user._id;
+    //             user.chatId = hash(lowerUserId, higherUserId);
+    //             return user;
+    //         });
+    //         return res.json({
+    //             success: success, message:  users,
+    //         });
+    //     } catch (err) {
+    //         return res.json({
+    //             success: false,
+    //             message: err,
+                
+    //         })
+    //     }
+    // }
+    async getUsers(req, res){
+        // try {
+        //     const users = await UserRepository.getAllUsers();
+        //     return res.json({
+        //         success: message, user: users
+        //     })
+        // } catch (err) {
+        //     return res.json({
+        //         success: false,
+        //         message: err
+        //     })
+        // }
+    //     User.find()
+    // .then(data => {
+    //   res.send(data);
+    // })
+    // .catch(err => {
+    //   res.status(500).send({
+    //     message:
+    //       err.message || "Some error occurred while retrieving tutorials."
+    //   });
+    // });t
+    try {
+        const {userId} = req.body;
+    let users = await UserRepository.getUsersWhereNot(userId);
+    return res.json({
+        success: true,
+        message: users
+    });
+    } catch (error) {
+        
     }
-
+    
+    }
     async saveFcmToken(req, res) {
         try {
             const { fcmToken } = req.body;
@@ -159,8 +196,8 @@ class UserController {
         }
         console.log(randomstring);
         // user.password = randomstring;
-        // const userId = user._id;
-        const userUpdate = await UserRepository.saveNewpassword(email,randomstring);
+        const userId = user._id;
+        const userUpdate = await UserRepository.saveNewpassword(userId,randomstring);
         const data = {
             from : 'ChatApp <nhi10800@gmail.com>',
             to: email,
@@ -191,20 +228,17 @@ class UserController {
     }
     async changePassword(req, res){
         try {
-            const {email, oldPassword, newPassword} = req.body;
-            if (!oldPassword || !newPassword||!email) {
+            const {_id, newPassword} = req.body;
+            if (!newPassword||!_id) {
                 return res.json({ 
                     success: false, 
                     message: "Invalid fields." })
             }
-            const user = await UserRepository.findByEmail(email);
+            const user = await UserRepository.findById(_id);
             if (!user){
-                return res.json({ success: false, message: "Invalid email" });
+                return res.json({ success: false, message: "Invalid user" });
             }
-            if (!await bcrypt.compare(oldPassword, user.password)){
-                return res.json({ success: false, message: "Invalid password" });
-            }
-            const userUpdate = await UserRepository.saveNewpassword(email,newPassword);
+            const userUpdate = await UserRepository.saveNewpassword(_id,newPassword);
             return res.json({
                 success: true, message: 'Password update successful'
             })
