@@ -17,6 +17,10 @@ class UserRepository {
     async findById(_id) {
         return await User.findOne({_id}).select({ 'email': 1, 'username': 1, 'password': 1 });
     }
+
+    async findByIdSelectName(_id) {
+        return await User.findOne({_id}).select({ 'username': 1});
+    }
     async getUsersWhereNot(userId) {
         return await User.find({ _id: { $ne: ObjectId(userId) } });
     }

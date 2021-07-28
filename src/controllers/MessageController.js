@@ -1,13 +1,77 @@
 const UserRepository = require('../repositories/UserRepository');
 const MessageRepository = require('../repositories/MessageRepository');
+const RoomRepository = require('../repositories/RoomRepository');
+const {Message} = require('../models/MessageModel');
+const constants = require('../utils/constants');
+const RoomController = require('./RoomController');
 class MessageController {
-
+    async sendMessage(data, io, clients){
+        try {
+            console.log(data);
+            const { from, room, type, eventType, content } = data;
+           let roomFind = await RoomRepository.findById(room);
+           if (!roomFind) {}
+           console.log("day1");
+           let sendMessage = new Message({from, room, type, eventType,  content});
+           console.log("day2");
+           const newMessage =  await MessageRepository.create(sendMessage);
+           //update room (lastMessage, updatedAt);
+        //    console.log(newMessage._id);
+           console.log("day3");
+           await RoomRepository.updateLastMessage(sendMessage.room, newMessage._id);
+        //    console.log(sendMessage._id)
+        //    const id = sendMessage._id;
+        //    let message = await Message.findOne({id}).select({'_id':1, 'username': 1});
+        //    console.log(message._id);
+        // console.log(sendMessage);
+        //get userid in room
+        
+        let userIdInRoom = await RoomRepository.findById(room);
+        console.log("user in room",userIdInRoom.users);
+            await io.sockets.in(room).emit(constants.MESSAGE, sendMessage);
+            userIdInRoom.users.forEach(element => {
+                if (clients[element]) {
+                clients[element].emit(constants.NEW_MESSAGE, sendMessage);
+                console.log(clients);
+                console.log("success");
+                
+            }
+            });
+            console.log("day4");
+        } catch (error) {
+            
+        }
+    }
+    async getMessage(req, res){
+        try {
+            const {roomId} = req.body;
+            let roomFind = await RoomRepository.findById(roomId);
+            if (!roomFind) {
+                return res.json({
+                    success: false,
+                    errorMessage: "Undefinded room",
+                })
+            }
+            let rooms = await MessageRepository.findByRoomId(roomId);
+            return res.json({
+                success: true,
+                message: rooms
+            });
+        } catch (error) {
+            return res.json({
+                success: false,
+                message: error.message,
+                
+            })
+        }
+    }
     async create(req, res) {
         try {
-            const { message, from, to } = req.body;
+            const { from, room, type, eventType, content } = req.body;
         
             console.log(req.body);
-            if (!message|| !from|| !to) {
+            
+            if (!from|| !room || !type || !eventType|| !content) {
                 return res.json({
                     success: false,
                     message: "Invalid fields.",
@@ -23,19 +87,18 @@ class MessageController {
                 })
             }
 
-            const receiveUser = (await UserRepository.findById(to)) != null;
-            if (!receiveUser) {
+            const receiveRoom = (await RoomRepository.findById(room)) != null;
+            if (!receiveRoom) {
                 return res.json({
                     success: false,
-                    errorMessage: "User receive is not defined",
+                    errorMessage: "Room is not defined",
                 })
             }
-            const sendMessage = {
-                message,
-                from,
-                to,
-            }
+            let sendMessage = new Message({
+                from, room, type, eventType,  content
+            });
             await MessageRepository.create(sendMessage);
+            // await sendMessage.save();
             return res.json({
                 success: true,
                 message: sendMessage
@@ -45,41 +108,13 @@ class MessageController {
             console.log(err.message)
             return res.json({
                 success: false,
-                message: err,
+                message: err.message,
                 
             })
         }
     }
-    async getMessage(req, res) {
-        try {
-            const {id} = req._id;
-            const username = req.query.username;
-            if (username) {
-                let user = await UserRepository.getUserByName(myId, username);
-                const lowerUserId = myId < user._id ? myId : user._id;
-                const higherUserId = myId > user._id ? myId : user._id;
-                user.chatId = hash(lowerUserId, higherUserId);
-                return res.json({
-                    success: true, message: user
-                })
-            }
-            let users = await UserRepository.getUsersWhereNot(myId);
-            users = users.map((user) => {
-                const lowerUserId = myId < user._id ? myId : user._id;
-                const higherUserId = myId > user._id ? myId : user._id;
-                user.chatId = hash(lowerUserId, higherUserId);
-                return user;
-            });
-            return res.json({
-                success: success, message:  users,
-            });
-        } catch (err) {
-            return res.json({
-                success: false,
-                message: err
-            })
-        }
-    }
+
+
 
 
 }

@@ -226,6 +226,44 @@ class UserController {
         }
         
     }
+    async findUsernameById(req, res){
+        try {
+            const {id} = req.body;
+            console.log(id);
+            const user = await UserRepository.findById(id);
+            if (!user){
+                return res.json({ success: false, message: "Invalid user" });
+            }
+            return res.json({
+                success: true, user
+            })
+
+        } catch (err) {
+            return res.json({
+                success: false,
+                message: err
+            })
+        }
+    }
+    // async findUsernameById(id){
+    //     try {
+    //         // const {id} = req.body;
+    //         console.log(id);
+    //         const user = await UserRepository.findById(id);
+    //         if (!user){
+    //             return res.json({ success: false, message: "Invalid user" });
+    //         }
+    //         return res.json({
+    //             success: true, user
+    //         })
+
+    //     } catch (err) {
+    //         return res.json({
+    //             success: false,
+    //             message: err
+    //         })
+    //     }
+    // }
     async changePassword(req, res){
         try {
             const {_id, newPassword} = req.body;
