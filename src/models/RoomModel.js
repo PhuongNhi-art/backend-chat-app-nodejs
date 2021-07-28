@@ -63,6 +63,5 @@ RoomSchema.pre('update', async function (next) {
     this.updatedAt = new Date().getTime();
     next();
 });
-// let Room = mongoose.model('Room', RoomSchema);
 
 module.exports = mongoose.model('Room', RoomSchema);

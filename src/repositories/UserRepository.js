@@ -37,13 +37,6 @@ class UserRepository {
             console.log(data);
           return data
         })
-        // .catch(err => {
-        //   res.status(500).send({
-        //     message:
-        //       err.message || "Some error occurred while retrieving tutorials."
-        //   });
-        // }
-        // );
     }
     async saveUserFcmToken(userId, fcmToken) {
         return await User.updateOne({ _id: ObjectId(userId) }, {

@@ -288,6 +288,22 @@ class UserController {
             })
         }
     }
+    // async getAllUsers(){
+    //     try {
+    //         const users = await UserRepository.getAllUsers();
+    //         if (!users){
+    //             return res.json({ success: false, message: "Don't have any users" });
+    //         }
+    //         return res.json({
+    //             success: true, message: users
+    //         })
+    //     } catch (error) {
+    //         return res.json({
+    //             success: false,
+    //             message: err
+    //         })
+    //     }
+    // }
 
 }
 
